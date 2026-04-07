@@ -8,7 +8,7 @@ interface PlanState {
   recipeOverrides: Record<string, string>; // itemId -> recipeId
   checkedNodes: Set<string>; // nodeId -> isDone
   nodePositions: Record<string, { x: number; y: number }>; // nodeId -> position
-  
+
   // Actions
   addItem: (id: string, count: number) => void;
   removeItem: (id: string) => void;
@@ -16,14 +16,14 @@ interface PlanState {
   toggleDone: (id: string) => void;
   setNodePosition: (id: string, x: number, y: number) => void;
   clearPlan: () => void;
-  
+
   // Computed
   getBillOfMaterials: () => Ingredient[];
 }
 
 /**
  * usePlanStore
- * 
+ *
  * Global state store for the Icarus Production Planner.
  */
 export const usePlanStore = create<PlanState>()(
@@ -34,40 +34,46 @@ export const usePlanStore = create<PlanState>()(
       checkedNodes: new Set<string>(),
       nodePositions: {},
 
-      addItem: (id, count) => set(state => ({
-        itemsRequested: {
-          ...state.itemsRequested,
-          [id]: (state.itemsRequested[id] || 0) + count
-        }
-      })),
+      addItem: (id, count) =>
+        set((state) => ({
+          itemsRequested: {
+            ...state.itemsRequested,
+            [id]: (state.itemsRequested[id] || 0) + count,
+          },
+        })),
 
-      removeItem: (id) => set(state => {
-        const next = { ...state.itemsRequested };
-        delete next[id];
-        return { itemsRequested: next };
-      }),
+      removeItem: (id) =>
+        set((state) => {
+          const next = { ...state.itemsRequested };
+          delete next[id];
+          return { itemsRequested: next };
+        }),
 
-      setRecipe: (itemId, recipeId) => set(state => ({
-        recipeOverrides: { ...state.recipeOverrides, [itemId]: recipeId }
-      })),
+      setRecipe: (itemId, recipeId) =>
+        set((state) => ({
+          recipeOverrides: { ...state.recipeOverrides, [itemId]: recipeId },
+        })),
 
-      toggleDone: (id) => set(state => {
-        const next = new Set(state.checkedNodes);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return { checkedNodes: next };
-      }),
+      toggleDone: (id) =>
+        set((state) => {
+          const next = new Set(state.checkedNodes);
+          if (next.has(id)) next.delete(id);
+          else next.add(id);
+          return { checkedNodes: next };
+        }),
 
-      setNodePosition: (id, x, y) => set(state => ({
-        nodePositions: { ...state.nodePositions, [id]: { x, y } }
-      })),
+      setNodePosition: (id, x, y) =>
+        set((state) => ({
+          nodePositions: { ...state.nodePositions, [id]: { x, y } },
+        })),
 
-      clearPlan: () => set({
-        itemsRequested: {},
-        recipeOverrides: {},
-        checkedNodes: new Set(),
-        nodePositions: {}
-      }),
+      clearPlan: () =>
+        set({
+          itemsRequested: {},
+          recipeOverrides: {},
+          checkedNodes: new Set(),
+          nodePositions: {},
+        }),
 
       getBillOfMaterials: () => {
         const { itemsRequested, recipeOverrides, checkedNodes } = get();
@@ -75,7 +81,7 @@ export const usePlanStore = create<PlanState>()(
 
         function resolve(id: string, count: number, yOffset: number, parentId = '') {
           const nodeId = parentId ? `${parentId}.${yOffset}_${id}` : id;
-          
+
           // If user marked this specific node as "Done", we stop going down.
           if (checkedNodes.has(nodeId)) {
             return;
@@ -100,10 +106,11 @@ export const usePlanStore = create<PlanState>()(
           }
 
           // Pro-rata distribution (outputs vs inputs)
-          const outputCount = recipe.outputs.find(o => o.id === id)?.count || 1;
+          const outputCount =
+            recipe.outputs.find((o: { id: string; count: number }) => o.id === id)?.count || 1;
           const factor = Math.ceil(count / outputCount);
 
-          recipe.inputs.forEach((input, index) => {
+          recipe.inputs.forEach((input: Ingredient, index: number) => {
             const childYOffset = yOffset + (index - (recipe.inputs.length - 1) / 2);
             resolve(input.id, input.count * factor, childYOffset, nodeId);
           });
@@ -116,11 +123,10 @@ export const usePlanStore = create<PlanState>()(
           });
 
         return Object.entries(totals).map(([id, count]) => ({ id, count }));
-      }
+      },
     }),
     {
       name: 'icarus-plan-storage',
-      //@ts-ignore - Handle Set serialization
       storage: {
         getItem: (name: string) => {
           const str = localStorage.getItem(name);
@@ -130,8 +136,8 @@ export const usePlanStore = create<PlanState>()(
             ...data,
             state: {
               ...data.state,
-              checkedNodes: new Set(data.state.checkedNodes)
-            }
+              checkedNodes: new Set(data.state.checkedNodes),
+            },
           };
         },
         setItem: (name: string, value: any) => {
@@ -139,13 +145,13 @@ export const usePlanStore = create<PlanState>()(
             ...value,
             state: {
               ...value.state,
-              checkedNodes: Array.from(value.state.checkedNodes)
-            }
+              checkedNodes: Array.from(value.state.checkedNodes),
+            },
           };
           localStorage.setItem(name, JSON.stringify(data));
         },
-        removeItem: (name: string) => localStorage.removeItem(name)
-      }
+        removeItem: (name: string) => localStorage.removeItem(name),
+      },
     }
   )
 );

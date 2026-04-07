@@ -1,26 +1,35 @@
 import { Node, Edge, Position } from 'reactflow';
 import { dataAdapter } from '../services/dataAdapter';
+import { Ingredient } from '../types/data';
 
 /**
  * buildGraph
- * 
+ *
  * Recursively builds the node and edge structures for a given set of requested items.
  * Uses a Left-to-Right layout logic.
  */
 export function buildGraph(
-  itemsRequested: Record<string, number>, 
-  recipeOverrides: Record<string, string>, 
+  itemsRequested: Record<string, number>,
+  recipeOverrides: Record<string, string>,
   checkedNodes: Set<string>,
-  manualPositions: Record<string, { x: number, y: number }>
+  manualPositions: Record<string, { x: number; y: number }>
 ) {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
+  let error: string | null = null;
+  const MAX_DEPTH = 20;
 
   function traverse(itemId: string, quantity: number, depth = 0, yOffset = 0, parentId = '') {
+    if (depth > MAX_DEPTH) {
+      error = `Maximum recursion depth (${MAX_DEPTH}) exceeded at item: ${itemId}. Possible recipe cycle detected.`;
+      console.error(error);
+      return;
+    }
+
     // Generate a unique path-based ID: e.g. "axe.0_stick.0_wood"
     // For root nodes, the ID is just the itemId.
     const nodeId = parentId ? `${parentId}.${yOffset}_${itemId}` : itemId;
-    
+
     // Position logic: Root on left, children expand rightwards
     const defaultX = depth * 400;
     const defaultY = yOffset * 300;
@@ -34,11 +43,11 @@ export function buildGraph(
       id: nodeId,
       type: 'recipe',
       position,
-      data: { 
-        itemId, 
-        quantity, 
+      data: {
+        itemId,
+        quantity,
         nodeId,
-        isRoot: !parentId 
+        isRoot: !parentId,
       },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -50,7 +59,7 @@ export function buildGraph(
         source: parentId,
         target: nodeId,
         animated: !isDone,
-        style: { stroke: isDone ? 'var(--accent-success)' : 'var(--accent-primary)' }
+        style: { stroke: isDone ? 'var(--accent-success)' : 'var(--accent-primary)' },
       });
     }
 
@@ -62,10 +71,10 @@ export function buildGraph(
     const recipe = recipeId ? dataAdapter.getRecipe(recipeId) : null;
 
     if (recipe) {
-      const outputCount = recipe.outputs.find(o => o.id === itemId)?.count || 1;
+      const outputCount = recipe.outputs.find((o: Ingredient) => o.id === itemId)?.count || 1;
       const factor = Math.ceil(quantity / outputCount);
 
-      recipe.inputs.forEach((input, index) => {
+      recipe.inputs.forEach((input: Ingredient, index: number) => {
         // Spread children vertically for layout, but use index for path uniqueness
         const childYOffset = yOffset + (index - (recipe.inputs.length - 1) / 2);
         traverse(input.id, input.count * factor, depth + 1, childYOffset, nodeId);
@@ -80,5 +89,5 @@ export function buildGraph(
       traverse(id, count, 0, index * 3);
     });
 
-  return { nodes, edges };
+  return { nodes, edges, error };
 }

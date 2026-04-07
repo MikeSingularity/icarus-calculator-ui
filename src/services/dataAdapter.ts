@@ -2,7 +2,7 @@ import { GameData, Item, Recipe } from '../types/data';
 
 /**
  * DataAdapter Service
- * 
+ *
  * Handles fetching, parsing, and indexing game data.
  */
 class DataAdapter {
@@ -15,9 +15,10 @@ class DataAdapter {
    */
   async init(): Promise<void> {
     try {
-      const response = await fetch('/data_source/data_calculator_min.json');
-      if (!response.ok) throw new Error('Failed to load game data');
-      
+      const dataUrl = import.meta.env.VITE_DATA_URL || '/data_source/data_calculator_min.json';
+      const response = await fetch(dataUrl);
+      if (!response.ok) throw new Error(`Failed to load game data from ${dataUrl}`);
+
       this.data = await response.json();
       this.buildIndexes();
     } catch (error) {
@@ -29,11 +30,11 @@ class DataAdapter {
   private buildIndexes() {
     if (!this.data) return;
 
-    Object.values(this.data.items).forEach(item => {
+    Object.values(this.data.items).forEach((item) => {
       this.itemIndex.set(item.id, item);
     });
 
-    Object.values(this.data.recipes).forEach(recipe => {
+    Object.values(this.data.recipes).forEach((recipe) => {
       this.recipeIndex.set(recipe.id, recipe);
     });
   }
@@ -53,10 +54,10 @@ class DataAdapter {
     const items = Array.from(this.itemIndex.values());
     let filtered = items;
     if (tierFilter) {
-      filtered = filtered.filter(i => i.tier.startsWith(tierFilter));
+      filtered = filtered.filter((i) => i.tier.startsWith(tierFilter));
     }
     // Respect blacklist
-    return filtered.filter(i => !this.isBlacklisted(i.id));
+    return filtered.filter((i) => !this.isBlacklisted(i.id));
   }
 
   /**
@@ -68,19 +69,19 @@ class DataAdapter {
 
   /**
    * isLeaf
-   * 
+   *
    * Determines if an item should stop recursion.
    * True if it's generic, tagged as RawMaterial, or has no recipes.
    */
   isLeaf(id: string): boolean {
     if (this.isGeneric(id)) return true;
-    
+
     const item = this.getItem(id);
     if (!item) return true;
 
     // Consider Raw Materials and Ingots as leaf nodes to stop recursion.
-    const isMaterial = item.tags?.some(tag => 
-      tag === 'IC.Material.Raw' || tag === 'IC.Material.Ingot'
+    const isMaterial = item.tags?.some(
+      (tag: string) => tag === 'IC.Material.Raw' || tag === 'IC.Material.Ingot'
     );
     if (isMaterial) return true;
 
@@ -103,7 +104,7 @@ class DataAdapter {
   getDisplayName(id: string): string {
     if (this.isGeneric(id)) {
       // Format generic names (e.g., any_prime_meat -> Any Prime Meat)
-      return id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      return id.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
     }
     return this.getItem(id)?.display_name || id;
   }

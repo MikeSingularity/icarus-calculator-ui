@@ -6,21 +6,21 @@ import { usePlanStore } from '../../store/usePlanStore';
 
 /**
  * CommandPalette Component
- * 
+ *
  * An accessible Cmd+K dialog for searching and adding recipes to the workspace.
  */
 export const CommandPalette: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [tierFilter, setTierFilter] = useState<string | null>(null);
-  const addItem = usePlanStore(state => state.addItem);
+  const addItem = usePlanStore((state) => state.addItem);
 
   // Initialize Fuse.js for fuzzy search
   const fuse = useMemo(() => {
     const items = dataAdapter.getAllItems();
     return new Fuse(items, {
       keys: ['display_name', 'id'],
-      threshold: 0.35
+      threshold: 0.35,
     });
   }, []);
 
@@ -28,9 +28,9 @@ export const CommandPalette: React.FC = () => {
     if (!query) {
       return dataAdapter.getAllItems(tierFilter || undefined).slice(0, 10);
     }
-    let res = fuse.search(query).map(r => r.item);
+    let res = fuse.search(query).map((r) => r.item);
     if (tierFilter) {
-      res = res.filter(r => r.tier.startsWith(tierFilter));
+      res = res.filter((r) => r.tier.startsWith(tierFilter));
     }
     return res.slice(0, 10);
   }, [fuse, query, tierFilter]);
@@ -54,36 +54,47 @@ export const CommandPalette: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      background: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(8px)',
-      zIndex: 100,
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'center',
-      paddingTop: '15vh'
-    }} onClick={() => setIsOpen(false)}>
-      <div 
-        className="glass" 
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.75)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        paddingTop: '15vh',
+      }}
+      onClick={() => setIsOpen(false)}
+    >
+      <div
+        className="glass"
         style={{
           width: '600px',
           background: 'var(--bg-sidebar)',
           padding: '0',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Area */}
-        <header style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <header
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--border-color)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
           <Search size={22} className="text-muted" />
-          <input 
+          <input
             autoFocus
-            type="text" 
+            type="text"
             placeholder="Search recipes (e.g. Steel Pickaxe)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -94,29 +105,48 @@ export const CommandPalette: React.FC = () => {
               outline: 'none',
               color: '#fff',
               fontSize: '1.1rem',
-              fontWeight: 500
+              fontWeight: 500,
             }}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: 0.5 }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '2px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }}>ESC</span>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                padding: '2px 6px',
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '4px',
+              }}
+            >
+              ESC
+            </span>
           </div>
         </header>
 
         {/* Tier Filter Area */}
-        <div style={{ padding: '8px 20px', display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          {['1', '2', '3', '4', '5'].map(tier => (
-            <button 
+        <div
+          style={{
+            padding: '8px 20px',
+            display: 'flex',
+            gap: '8px',
+            background: 'rgba(255,255,255,0.02)',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
+          {['1', '2', '3', '4', '5'].map((tier) => (
+            <button
               key={tier}
               onClick={() => setTierFilter(tierFilter === tier ? null : tier)}
               style={{
-                background: tierFilter === tier ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+                background:
+                  tierFilter === tier ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
                 color: tierFilter === tier ? '#fff' : 'rgba(255,255,255,0.5)',
                 border: 'none',
                 padding: '4px 10px',
                 borderRadius: '6px',
                 fontSize: '0.75rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
             >
               Tier {tier}
@@ -132,7 +162,7 @@ export const CommandPalette: React.FC = () => {
             </div>
           ) : (
             results.map((item) => (
-              <div 
+              <div
                 key={item.id}
                 onClick={() => {
                   addItem(item.id, 1);
@@ -146,21 +176,42 @@ export const CommandPalette: React.FC = () => {
                   justifyContent: 'space-between',
                   cursor: 'pointer',
                   borderBottom: '1px solid rgba(255,255,255,0.03)',
-                  transition: '0.15s ease'
+                  transition: '0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'none';
+                }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                  <div
+                    style={{
+                      padding: '8px',
+                      background: 'rgba(255,255,255,0.05)',
+                      borderRadius: '8px',
+                    }}
+                  >
                     <Command size={16} className="text-primary" />
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, color: '#fff' }}>{item.display_name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{item.id}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>
+                      {item.id}
+                    </div>
                   </div>
                 </div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', color: 'rgba(255,255,255,0.4)' }}>
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    padding: '4px 8px',
+                    background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '6px',
+                    color: 'rgba(255,255,255,0.4)',
+                  }}
+                >
                   Tier {parseInt(item.tier, 10)}
                 </div>
               </div>
