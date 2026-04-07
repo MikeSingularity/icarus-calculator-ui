@@ -2,12 +2,19 @@
  * Data types for Icarus recipes and items.
  */
 
+export interface DisplayOperation {
+  operation: 'division' | 'multiplication';
+  value: number;
+}
+
 export interface Item {
   id: string;
   display_name: string;
   tier: string;
   tags: string[];
   recipes?: string[];
+  display_operations?: DisplayOperation[];
+  unit?: string;
   decay_data?: {
     decay_time: number;
     spoil_time: number;

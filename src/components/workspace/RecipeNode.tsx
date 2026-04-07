@@ -4,6 +4,7 @@ import { usePlanStore } from '../../store/usePlanStore';
 import { useRegistryStore } from '../../store/useRegistryStore';
 import { dataAdapter } from '../../services/dataAdapter';
 import { CheckCircle, Circle, Hammer, Trash2, ChevronDown } from 'lucide-react';
+import { formatQuantity } from '../../utils/quantityFormatter';
 
 /**
  * RecipeNode Component
@@ -97,7 +98,7 @@ export const RecipeNode: React.FC<NodeProps> = ({ id, data, xPos, yPos }) => {
               color: isDone ? 'var(--accent-success)' : 'var(--accent-primary)',
             }}
           >
-            {quantity}x
+            {formatQuantity(itemId, quantity)}
           </span>
         </div>
 

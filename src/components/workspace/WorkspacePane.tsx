@@ -59,6 +59,7 @@ export const WorkspacePane: React.FC = () => {
           style={{ background: 'var(--bg-main)' }}
           minZoom={0.1}
           maxZoom={1.5}
+          proOptions={{ hideAttribution: true }}
         >
           <Background color="#1e293b" variant={BackgroundVariant.Dots} gap={32} size={1} />
           <Controls />

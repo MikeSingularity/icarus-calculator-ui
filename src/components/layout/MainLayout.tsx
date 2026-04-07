@@ -7,30 +7,20 @@ import React from 'react';
  */
 export const MainLayout: React.FC<{
   workspace: React.ReactNode;
-  sidebar: React.ReactNode;
-}> = ({ workspace, sidebar }) => {
+}> = ({ workspace }) => {
   return (
     <div
       style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 360px',
+        display: 'block',
         width: '100vw',
         height: '100vh',
         overflow: 'hidden',
+        background: 'var(--bg-main)',
       }}
     >
-      <main style={{ position: 'relative', overflow: 'hidden' }}>{workspace}</main>
-      <aside
-        style={{
-          borderLeft: '1px solid rgba(255,255,255,0.1)',
-          background: 'rgba(17, 20, 27, 0.95)',
-          backdropFilter: 'blur(20px)',
-          zIndex: 10,
-          overflowY: 'auto',
-        }}
-      >
-        {sidebar}
-      </aside>
+      <main style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        {workspace}
+      </main>
     </div>
   );
 };

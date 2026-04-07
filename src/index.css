@@ -75,14 +75,29 @@ body {
 .react-flow__controls {
   background: var(--bg-node) !important;
   border: 1px solid var(--border-color) !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  backdrop-filter: var(--glass-blur) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
 }
 
 .react-flow__controls-button {
-  border-bottom: 1px solid var(--border-color) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
   fill: var(--text-main) !important;
+  color: var(--text-main) !important;
+  transition: var(--transition-fast) !important;
+  width: 28px !important;
+  height: 28px !important;
+  margin: 2px 0 !important;
 }
 
 .react-flow__controls-button:hover {
   background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 6px !important;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor !important;
 }

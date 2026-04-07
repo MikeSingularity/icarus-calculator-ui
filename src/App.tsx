@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { WorkspacePane } from './components/workspace/WorkspacePane';
-import { MaterialPane } from './components/materials/MaterialPane';
 import { CommandPalette } from './components/palette/CommandPalette';
-import { DynamicLinker } from './components/layout/DynamicLinker';
 import { dataAdapter } from './services/dataAdapter';
 import { Loader2 } from 'lucide-react';
 
@@ -45,25 +43,27 @@ function App() {
 
   return (
     <>
-      <MainLayout workspace={<WorkspacePane />} sidebar={<MaterialPane />} />
+      <MainLayout workspace={<WorkspacePane />} />
       <CommandPalette />
-      <DynamicLinker />
 
       {/* Visual Instruction Overlay */}
       <div
         style={{
           position: 'fixed',
-          bottom: '24px',
-          left: '24px',
-          padding: '12px 16px',
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '12px',
-          border: '1px solid rgba(255,255,255,0.1)',
-          fontSize: '0.8rem',
-          color: 'rgba(255,255,255,0.5)',
-          zIndex: 50,
+          bottom: '32px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          padding: '12px 20px',
+          background: 'rgba(26, 31, 41, 0.65)',
+          backdropFilter: 'blur(16px)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          fontSize: '0.85rem',
+          color: 'rgba(255,255,255,0.7)',
+          zIndex: 100,
           pointerEvents: 'none',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          letterSpacing: '0.02em',
         }}
       >
         Press <span style={{ color: '#fff', fontWeight: 700 }}>⌘ + K</span> or{' '}

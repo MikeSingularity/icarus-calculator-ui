@@ -22,6 +22,47 @@ interface PlanState {
 }
 
 /**
+ * getGCTransaction
+ *
+ * Returns a partial state update that removes node positions and checked states
+ * for items no longer reachable from the goal items.
+ */
+function getGCTransaction(state: {
+  itemsRequested: Record<string, number>;
+  recipeOverrides: Record<string, string>;
+  nodePositions: Record<string, { x: number; y: number }>;
+  checkedNodes: Set<string>;
+}): Partial<PlanState> {
+  const reachable = new Set<string>();
+
+  function traverse(id: string) {
+    if (reachable.has(id)) return;
+    reachable.add(id);
+
+    const item = dataAdapter.getItem(id);
+    const rid = state.recipeOverrides[id] || item?.recipes?.[0];
+    const recipe = rid ? dataAdapter.getRecipe(rid) : null;
+    if (recipe) {
+      recipe.inputs.forEach((input) => traverse(input.id));
+    }
+  }
+
+  Object.keys(state.itemsRequested).forEach((id) => traverse(id));
+
+  const nodePositions = { ...state.nodePositions };
+  Object.keys(nodePositions).forEach((id) => {
+    if (!reachable.has(id)) delete nodePositions[id];
+  });
+
+  const checkedNodes = new Set(state.checkedNodes);
+  Array.from(checkedNodes).forEach((id) => {
+    if (!reachable.has(id)) checkedNodes.delete(id);
+  });
+
+  return { nodePositions, checkedNodes };
+}
+
+/**
  * usePlanStore
  *
  * Global state store for the Icarus Production Planner.
@@ -44,15 +85,18 @@ export const usePlanStore = create<PlanState>()(
 
       removeItem: (id) =>
         set((state) => {
-          const next = { ...state.itemsRequested };
-          delete next[id];
-          return { itemsRequested: next };
+          const itemsRequested = { ...state.itemsRequested };
+          delete itemsRequested[id];
+          const gc = getGCTransaction({ ...state, itemsRequested });
+          return { itemsRequested, ...gc };
         }),
 
       setRecipe: (itemId, recipeId) =>
-        set((state) => ({
-          recipeOverrides: { ...state.recipeOverrides, [itemId]: recipeId },
-        })),
+        set((state) => {
+          const recipeOverrides = { ...state.recipeOverrides, [itemId]: recipeId };
+          const gc = getGCTransaction({ ...state, recipeOverrides });
+          return { recipeOverrides, ...gc };
+        }),
 
       toggleDone: (id) =>
         set((state) => {
@@ -79,11 +123,9 @@ export const usePlanStore = create<PlanState>()(
         const { itemsRequested, recipeOverrides, checkedNodes } = get();
         const totals: Record<string, number> = {};
 
-        function resolve(id: string, count: number, yOffset: number, parentId = '') {
-          const nodeId = parentId ? `${parentId}.${yOffset}_${id}` : id;
-
-          // If user marked this specific node as "Done", we stop going down.
-          if (checkedNodes.has(nodeId)) {
+        function resolve(id: string, count: number) {
+          // If user marked this specific item as "Done", we stop going down.
+          if (checkedNodes.has(id)) {
             return;
           }
 
@@ -110,16 +152,15 @@ export const usePlanStore = create<PlanState>()(
             recipe.outputs.find((o: { id: string; count: number }) => o.id === id)?.count || 1;
           const factor = Math.ceil(count / outputCount);
 
-          recipe.inputs.forEach((input: Ingredient, index: number) => {
-            const childYOffset = yOffset + (index - (recipe.inputs.length - 1) / 2);
-            resolve(input.id, input.count * factor, childYOffset, nodeId);
+          recipe.inputs.forEach((input: Ingredient) => {
+            resolve(input.id, input.count * factor);
           });
         }
 
         Object.entries(itemsRequested)
           .sort(([a], [b]) => a.localeCompare(b))
-          .forEach(([id, count], index) => {
-            resolve(id, count, index * 3);
+          .forEach(([id, count]) => {
+            resolve(id, count);
           });
 
         return Object.entries(totals).map(([id, count]) => ({ id, count }));
