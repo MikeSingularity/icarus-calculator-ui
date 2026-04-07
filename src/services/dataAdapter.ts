@@ -30,12 +30,21 @@ class DataAdapter {
   private buildIndexes() {
     if (!this.data) return;
 
-    Object.values(this.data.items).forEach((item) => {
-      this.itemIndex.set(item.id, item);
+    // First, index all recipes
+    Object.values(this.data.recipes).forEach((recipe) => {
+      // Filter out Quest/Mission items from recipes
+      const isBlacklisted = recipe.tags?.some(
+        (t) => t === 'FactionMission.Item' || t === 'Item.Quest'
+      );
+      if (!isBlacklisted) {
+        this.recipeIndex.set(recipe.id, recipe);
+      }
     });
 
-    Object.values(this.data.recipes).forEach((recipe) => {
-      this.recipeIndex.set(recipe.id, recipe);
+    // Then, index items and filter their recipe lists to only include non-blacklisted ones
+    Object.values(this.data.items).forEach((item) => {
+      const validRecipes = (item.recipes || []).filter((rId) => this.recipeIndex.has(rId));
+      this.itemIndex.set(item.id, { ...item, recipes: validRecipes });
     });
   }
 
@@ -54,7 +63,7 @@ class DataAdapter {
     const items = Array.from(this.itemIndex.values());
     let filtered = items;
     if (tierFilter) {
-      filtered = filtered.filter((i) => i.tier.startsWith(tierFilter));
+      filtered = filtered.filter((i) => String(i.tier).startsWith(tierFilter));
     }
     // Respect blacklist
     return filtered.filter((i) => !this.isBlacklisted(i.id));

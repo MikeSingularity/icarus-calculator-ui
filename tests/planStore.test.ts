@@ -102,4 +102,25 @@ describe('usePlanStore - Garbage Collection', () => {
     store.removeItem('campfire');
     expect(usePlanStore.getState().nodePositions['wood']).toBeUndefined();
   });
+
+  it('should update quantity and preserve children', () => {
+    const store = usePlanStore.getState();
+
+    store.addItem('axe', 1);
+    store.setNodePosition('wood', 500, 500);
+    store.toggleDone('wood');
+
+    // Update quantity
+    store.setItemQuantity('axe', 10);
+
+    const state = usePlanStore.getState();
+    expect(state.itemsRequested['axe']).toBe(10);
+    // wood should still be reachable
+    expect(state.nodePositions['wood']).toBeDefined();
+    expect(state.checkedNodes.has('wood')).toBe(true);
+
+    // Set to 0 (should be clamped to 1)
+    store.setItemQuantity('axe', 0);
+    expect(usePlanStore.getState().itemsRequested['axe']).toBe(1);
+  });
 });

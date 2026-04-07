@@ -20,6 +20,7 @@ export const RecipeNode: React.FC<NodeProps> = ({ id, data, xPos, yPos }) => {
   const toggleDone = usePlanStore((state) => state.toggleDone);
   const removeItem = usePlanStore((state) => state.removeItem);
   const setRecipe = usePlanStore((state) => state.setRecipe);
+  const setItemQuantity = usePlanStore((state) => state.setItemQuantity);
 
   const registerNode = useRegistryStore((state) => state.registerNode);
   const unregisterNode = useRegistryStore((state) => state.unregisterNode);
@@ -98,7 +99,30 @@ export const RecipeNode: React.FC<NodeProps> = ({ id, data, xPos, yPos }) => {
               color: isDone ? 'var(--accent-success)' : 'var(--accent-primary)',
             }}
           >
-            {formatQuantity(itemId, quantity)}
+            {isRoot ? (
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) setItemQuantity(itemId, val);
+                }}
+                style={{
+                  width: '40px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '4px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  color: 'var(--accent-primary)',
+                  textAlign: 'center',
+                  outline: 'none',
+                }}
+              />
+            ) : (
+              formatQuantity(itemId, quantity)
+            )}
           </span>
         </div>
 

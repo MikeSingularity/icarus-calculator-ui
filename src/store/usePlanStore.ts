@@ -12,6 +12,7 @@ interface PlanState {
   // Actions
   addItem: (id: string, count: number) => void;
   removeItem: (id: string) => void;
+  setItemQuantity: (itemId: string, count: number) => void;
   setRecipe: (itemId: string, recipeId: string) => void;
   toggleDone: (id: string) => void;
   setNodePosition: (id: string, x: number, y: number) => void;
@@ -82,6 +83,13 @@ export const usePlanStore = create<PlanState>()(
             [id]: (state.itemsRequested[id] || 0) + count,
           },
         })),
+
+      setItemQuantity: (itemId, count) =>
+        set((state) => {
+          const itemsRequested = { ...state.itemsRequested, [itemId]: Math.max(1, count) };
+          const gc = getGCTransaction({ ...state, itemsRequested });
+          return { itemsRequested, ...gc };
+        }),
 
       removeItem: (id) =>
         set((state) => {

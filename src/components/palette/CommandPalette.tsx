@@ -30,7 +30,7 @@ export const CommandPalette: React.FC = () => {
     }
     let res = fuse.search(query).map((r) => r.item);
     if (tierFilter) {
-      res = res.filter((r) => r.tier.startsWith(tierFilter));
+      res = res.filter((r) => String(r.tier).startsWith(tierFilter));
     }
     return res.slice(0, 10);
   }, [fuse, query, tierFilter]);
@@ -212,7 +212,7 @@ export const CommandPalette: React.FC = () => {
                     color: 'rgba(255,255,255,0.4)',
                   }}
                 >
-                  Tier {parseInt(item.tier, 10)}
+                  Tier {item.tier}
                 </div>
               </div>
             ))

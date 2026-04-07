@@ -1,11 +1,11 @@
 import { Node, Edge, Position } from 'reactflow';
+import dagre from 'dagre';
 import { dataAdapter } from '../services/dataAdapter';
 
 /**
  * buildGraph
  *
- * Recursively builds the node and edge structures for a given set of requested items.
- * Uses a Left-to-Right layout logic.
+ * Uses Dagre for professional DAG layout (centering parents over children).
  */
 export function buildGraph(
   itemsRequested: Record<string, number>,
@@ -18,33 +18,28 @@ export function buildGraph(
   let error: string | null = null;
   const MAX_DEPTH = 20;
 
-  // Track global state for the DAG
   const totalQuantities: Record<string, number> = {};
-  const nodeDepths: Record<string, number> = {};
+  const depthMap: Record<string, number> = {};
   const adjacency: Record<string, Set<string>> = {};
 
   /**
    * aggregate
-   * First pass: Sum up requirements and discover all active connections.
+   * Discovers all items, quantities, and connections.
    */
   function aggregate(itemId: string, quantity: number, depth: number, parentId: string) {
     if (depth > MAX_DEPTH) {
       error = `Maximum recursion depth (${MAX_DEPTH}) exceeded at item: ${itemId}. Possible recipe cycle detected.`;
-      console.error(error);
       return;
     }
 
-    // Accumulate total quantity needed across all paths
     totalQuantities[itemId] = (totalQuantities[itemId] || 0) + quantity;
-    // Set depth to the maximum distance from root to ensure it stays to the right of its parents
-    nodeDepths[itemId] = Math.max(nodeDepths[itemId] || 0, depth);
+    depthMap[itemId] = Math.max(depthMap[itemId] || 0, depth);
 
     if (parentId) {
       if (!adjacency[parentId]) adjacency[parentId] = new Set();
       adjacency[parentId].add(itemId);
     }
 
-    // Stop recursion if item is a leaf or marked as done
     const isDone = checkedNodes.has(itemId);
     if (dataAdapter.isLeaf(itemId) || isDone) return;
 
@@ -55,9 +50,7 @@ export function buildGraph(
     if (recipe) {
       const outputCount = recipe.outputs.find((o) => o.id === itemId)?.count || 1;
       const factor = Math.ceil(quantity / outputCount);
-
       recipe.inputs.forEach((input) => {
-        // Multi-path recursion: we visit each path to ensure correct quantity sum
         aggregate(input.id, input.count * factor, depth + 1, itemId);
       });
     }
@@ -70,32 +63,51 @@ export function buildGraph(
 
   if (error) return { nodes: [], edges: [], error };
 
-  // Calculate global max depth for the "Shopping List" column
-  const maxDepth = Math.max(0, ...Object.values(nodeDepths));
-  const columnCounters: Record<number, number> = {};
+  // Pass 2: Setup Dagre Graph
+  const g = new dagre.graphlib.Graph();
+  // rankdir: 'LR' (Left-to-Right)
+  // align: 'UL' or undefined (defaults to centering)
+  g.setGraph({ rankdir: 'LR', nodesep: 60, ranksep: 280, marginx: 40, marginy: 40 });
+  g.setDefaultEdgeLabel(() => ({}));
 
-  // Pass 2: Create Nodes with unified IDs and layout
+  // Add nodes to Dagre
   Object.keys(totalQuantities).forEach((itemId) => {
-    const isLeaf = dataAdapter.isLeaf(itemId);
-    const isDone = checkedNodes.has(itemId);
-    const isTerminal = isLeaf || isDone;
+    // Width/Height for layout purposes
+    g.setNode(itemId, { width: 320, height: 140 });
+  });
 
-    const depth = nodeDepths[itemId];
-    // Terminal items go to the Shopping List (MaxDepth + 1)
-    const column = isTerminal ? maxDepth + 1 : depth;
+  // Add edges to Dagre
+  Object.entries(adjacency).forEach(([parentId, children]) => {
+    children.forEach((childId) => {
+      // Force terminal nodes (shopping list) to be at least one rank further?
+      // Dagre handles this naturally if they are leaves.
+      g.setEdge(parentId, childId);
+    });
+  });
 
-    // Auto-layout positioning
-    const x = column * 320; // Slightly tighter horizontal spacing
-    const y = (columnCounters[column] || 0) * 160;
-    columnCounters[column] = (columnCounters[column] || 0) + 1;
+  // Re-rank items marked as "Done" or "Leaf" to be in the furthest possible column?
+  // We can simulate the "Shopping List" by finding the max rank and shifting them.
+  dagre.layout(g);
+
+  // Pass 3: Map Dagre output to React Flow
+  const maxRank = Math.max(...g.nodes().map((n) => (g.node(n) as any).rank || 0));
+
+  Object.keys(totalQuantities).forEach((itemId) => {
+    const isTerminal = dataAdapter.isLeaf(itemId) || checkedNodes.has(itemId);
+    const dagreNode = g.node(itemId) as any;
+
+    // Manual adjustment for "Shopping List" if we want to ensure they align far-right
+    const x = dagreNode.x;
+    if (isTerminal && dagreNode.rank !== undefined && dagreNode.rank < (maxRank as any)) {
+      // Optional: We could shift them to maxRank here, but Dagre's layered sort
+      // is usually smarter about keeping them near their parents.
+    }
 
     const storedPos = manualPositions[itemId];
-    const position = storedPos || { x, y };
-
     nodes.push({
-      id: itemId, // Unified ID
+      id: itemId,
       type: 'recipe',
-      position,
+      position: storedPos || { x: x, y: dagreNode.y },
       data: {
         itemId,
         quantity: totalQuantities[itemId],
@@ -106,13 +118,10 @@ export function buildGraph(
     });
   });
 
-  // Pass 3: Create Edges based on unique connections discovered in Pass 1
+  // Pass 4: Create Edges
   Object.entries(adjacency).forEach(([parentId, children]) => {
     children.forEach((childId) => {
-      const isParentDone = checkedNodes.has(parentId);
-      const isChildDone = checkedNodes.has(childId);
-      const isDone = isParentDone || isChildDone;
-
+      const isDone = checkedNodes.has(parentId) || checkedNodes.has(childId);
       edges.push({
         id: `e-${parentId}-to-${childId}`,
         source: parentId,

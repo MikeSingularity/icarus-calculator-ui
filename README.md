@@ -14,6 +14,14 @@ This project has been upgraded to the modern **2026 Toolchain** to ensure maximu
 - **Testing:** [Vitest v4](https://vitest.dev) (Vite-Native)
 - **Styling:** Vanilla CSS (Glassmorphism & Rich Aesthetics)
 - **Deployment:** [Cloudflare Pages](https://pages.cloudflare.com/) (Edge Optimized)
+- **Node Graph:** [React Flow](https://reactflow.dev/) (DAG Architecture)
+
+## ✨ Features (2026 Edition)
+
+- **Goal Quantity Editing:** Directly set the quantity of top-level items in the workspace. All dependencies scale automatically.
+- **Refined Tier Filtering:** Tier filters now correctly include fractional game tiers (e.g., Tier 3.5 items appear in the Tier 3 filter).
+- **DAG Layout:** Professional hierarchical layout using the Dagre engine for balanced vertical centering.
+- **Recipe Filtering:** Automatically filters out mission-specific and quest recipes for a clean production experience.
 
 ## 🛠 Usage
 
