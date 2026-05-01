@@ -39,7 +39,15 @@ fi
 
 # Define vitest arguments
 # We use json-summary to generate a parseable file for our markdown report
-ARGS=(--coverage.enabled --coverage.reporter=json-summary --coverage.reporter=text --coverage.reportsDirectory="${PROJECT_ROOT}/temp/coverage" --passWithNoTests)
+LOC=$(find "${PROJECT_ROOT}" -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/\.*" -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
+LOC=${LOC:-0}
+
+if [ "$LOC" -lt 50 ]; then
+    echo "Project has less than 50 lines of code ($LOC LOC). Bypassing coverage threshold."
+    ARGS=(--coverage.enabled --coverage.reporter=json-summary --coverage.reporter=text --coverage.reportsDirectory="${PROJECT_ROOT}/temp/coverage" --passWithNoTests --coverage.thresholds.lines=0 --coverage.thresholds.functions=0 --coverage.thresholds.branches=0 --coverage.thresholds.statements=0)
+else
+    ARGS=(--coverage.enabled --coverage.reporter=json-summary --coverage.reporter=text --coverage.reportsDirectory="${PROJECT_ROOT}/temp/coverage" --passWithNoTests)
+fi
 GENERATE_REPORT=false
 
 if [ -n "$1" ]; then

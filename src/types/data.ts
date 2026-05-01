@@ -35,9 +35,22 @@ export interface Recipe {
   tags: string[];
 }
 
+export interface Metadata {
+  client_version: string;
+  generated_date: string;
+  patchnotes_url: string;
+  client_build_guid?: string;
+  last_sync_date?: string;
+  latest_week?: string;
+  server_build_guid?: string;
+  server_version?: string;
+  version_title?: string;
+}
+
 export interface GameData {
   features: Record<string, string>;
   generics: Record<string, string[]>;
   items: Record<string, Item>;
   recipes: Record<string, Recipe>;
+  metadata: Metadata;
 }

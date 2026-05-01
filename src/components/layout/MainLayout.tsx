@@ -1,4 +1,6 @@
 import React from 'react';
+import { Header } from './Header';
+import { Footer } from './Footer';
 
 /**
  * MainLayout Component
@@ -11,16 +13,19 @@ export const MainLayout: React.FC<{
   return (
     <div
       style={{
-        display: 'block',
+        display: 'flex',
+        flexDirection: 'column',
         width: '100vw',
         height: '100vh',
         overflow: 'hidden',
         background: 'var(--bg-main)',
       }}
     >
-      <main style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      <Header />
+      <main style={{ position: 'relative', flex: 1, width: '100%', overflow: 'hidden' }}>
         {workspace}
       </main>
+      <Footer />
     </div>
   );
 };

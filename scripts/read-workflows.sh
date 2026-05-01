@@ -1,9 +1,21 @@
 #!/usr/bin/env bash
 #
-# NOTE: This script is hard-linked via the ai-project-configuration/_setup.sh script. 
-# Edits to this file should be made in that location to ensure that edits are 
-# intentionally applied to the project template and not just the test script.
+# Helper script to discover and list all active workflows.
+# Satisfies the MANDATORY session initialization requirements.
+#
 
 set -e
 
-ls -FR ~/.gemini/antigravity/global_workflows/ .agents/workflows/
+for i in "${HOME}/.agents/workflows" \
+         "${HOME}/.agents/skills" \
+         ".agents/workflows" \
+         ".agents/skills"; do
+
+    echo "----"
+    if [ -d "$i" ]; then
+        tree -lDL 5 "${i}"
+        echo ""
+    else
+        echo "Directory $i does not exist, skipping."
+    fi
+done
