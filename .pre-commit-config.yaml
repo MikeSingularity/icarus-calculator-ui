@@ -8,12 +8,12 @@ repos:
         types_or: [javascript, jsx, ts, tsx, json, css, mdx, yaml, markdown]
       - id: eslint
         name: eslint (linting)
-        entry: pnpm exec eslint --config .eslint.config.js --fix
+        entry: pnpm exec eslint --config eslint.config.js --fix
         language: system
         types_or: [javascript, jsx, ts, tsx]
       - id: typecheck
         name: typescript (type checking)
-        entry: pnpm exec tsc -p .tsconfig.json --noEmit
+        entry: pnpm exec tsc -p tsconfig.json --noEmit
         language: system
         types: [ts, tsx]
         pass_filenames: false

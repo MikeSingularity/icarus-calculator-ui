@@ -42,9 +42,9 @@ echo "Running Prettier Formatter..." | tee -a "${LINT_LOG}"
 pnpm exec prettier --write . 2>&1 | tee -a "${LINT_LOG}"
 
 echo "Running ESLint (auto-fix)..." | tee -a "${LINT_LOG}"
-pnpm exec eslint --config .eslint.config.js --fix . 2>&1 | tee -a "${LINT_LOG}"
+pnpm exec eslint --config eslint.config.js --fix . 2>&1 | tee -a "${LINT_LOG}"
 
 echo "Running TypeScript Compiler (Type Verification)..." | tee -a "${LINT_LOG}"
-pnpm exec tsc -p .tsconfig.json --noEmit 2>&1 | tee -a "${LINT_LOG}"
+pnpm exec tsc -p tsconfig.json --noEmit 2>&1 | tee -a "${LINT_LOG}"
 
 echo "Completed successfully at $(date)" | tee -a "${LINT_LOG}"
