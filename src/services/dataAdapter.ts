@@ -19,7 +19,7 @@ class DataAdapter {
         import.meta.env.VITE_DATA_URL ||
         (import.meta.env.DEV
           ? '/public-dev/icarus_consumables.min.json'
-          : 'https://mikesingularity.github.io/icarus-calculator-ui/public-dev/icarus_consumables.min.json');
+          : 'https://mikesingularity.github.io/icarus-consumables-data/icarus_consumables.min.json');
       const response = await fetch(dataUrl);
       if (!response.ok) throw new Error(`Failed to load game data from ${dataUrl}`);
 
